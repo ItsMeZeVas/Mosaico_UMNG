@@ -1,13 +1,13 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwW-_fcSA49nLbhKRgVaLGwDM4GhCKXjHzSSXq-XcFbHQCdtZ7kjP79cHnUCLWD3ALX/exec"; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuSShIX_-wTmrL5AwAnnk5C4xFWWHGYx4pyeFNMP3zq_RYf4RSkm8P_0FyhcmnWVgj/exec";
 
 // ===== CONFIGURACIÓN =====
-const filasI   = 12;   // filas de la I
-const colsI    = 2;    // columnas de la I
-const filasM   = 12;   // filas de la M
-const colsM    = 14;   // columnas de la M
-const thickM   = 2;    // grosor de patas/diagonales de la M
-const cellSize = 40;   // tamaño de celda en px
-const REFRESCO_MS = 30000; // ⏱️ tiempo de actualización en milisegundos
+const filasI   = 12;
+const colsI    = 2;
+const filasM   = 12;
+const colsM    = 14;
+const thickM   = 2;
+const cellSize = 40;
+const REFRESCO_MS = 30000;
 // ==========================
 
 function configurarGrid(el, filas, columnas){
@@ -20,16 +20,14 @@ function coordsI(filas, columnas){
   for(let r=0;r<filas;r++){
     for(let c=0;c<columnas;c++) puntos.push([r,c]);
   }
-  return {puntos, columnas};
+  return {puntos, filas, columnas};
 }
 
 function coordsM(filas, columnas, thick){
   const puntos=[];
   const mitad = Math.floor(columnas/2);
   for(let r=0;r<filas;r++){
-    // patas
     for(let t=0;t<thick;t++){ puntos.push([r,t]); puntos.push([r,columnas-1-t]); }
-    // diagonales
     let diag = Math.floor(r*(mitad/(filas)));
     for(let t=0;t<thick;t++){
       let cc = diag + t;
@@ -41,10 +39,9 @@ function coordsM(filas, columnas, thick){
       if(cc>=0) puntos.push([r, cc]);
     }
   }
-  return {puntos, columnas};
+  return {puntos, filas, columnas};
 }
 
-// Mezcla un array (Fisher-Yates)
 function shuffle(arr){
   const a = [...arr];
   for(let i=a.length-1;i>0;i--){
@@ -54,21 +51,50 @@ function shuffle(arr){
   return a;
 }
 
-function crearLetra(container, data, fotos, filas){
+// ===== Modal =====
+const modal     = document.getElementById("modal");
+const modalImg  = document.getElementById("modal-img");
+const cerrarBtn = document.querySelector(".cerrar");
+
+function abrirModal(src){
+  modalImg.classList.remove("visible");
+  const temp = new Image();
+  temp.onload = () => {
+    modalImg.src = src;
+    modal.classList.add("mostrar");
+    requestAnimationFrame(()=> modalImg.classList.add("visible"));
+  };
+  temp.src = src;
+}
+
+function cerrarModal(){
+  modalImg.classList.remove("visible");
+  modal.classList.remove("mostrar");
+  setTimeout(()=>{ modalImg.src = ""; }, 400);
+}
+
+cerrarBtn.onclick = cerrarModal;
+modal.addEventListener("click", e=>{
+  if(e.target === modal) cerrarModal();
+});
+
+// ===== Construcción del mosaico =====
+function crearLetra(container, data, fotos){
   container.innerHTML = "";
-  configurarGrid(container, filas, data.columnas);
-  // mezclar imágenes
+  configurarGrid(container, data.filas, data.columnas);
+
   let imgs = shuffle(fotos);
-  // repetir si no hay suficientes
   while(imgs.length < data.puntos.length){
     imgs = imgs.concat(shuffle(fotos));
   }
-  // colocar
+
   data.puntos.forEach(([r,c], i)=>{
     const img = document.createElement("img");
-    img.src = imgs[i].url; // usa la URL del JSON
+    img.src = imgs[i % imgs.length].thumb;
+    img.dataset.big = imgs[i % imgs.length].big;
     img.style.gridRow = r+1;
     img.style.gridColumn = c+1;
+    img.addEventListener("click", e=> abrirModal(e.target.dataset.big));
     container.appendChild(img);
   });
 }
@@ -77,11 +103,34 @@ let fotosCache = [];
 
 function refrescar(){
   if(!fotosCache.length) return;
-  crearLetra(document.getElementById("letraI"), coordsI(filasI, colsI), fotosCache, filasI);
-  crearLetra(document.getElementById("letraM"), coordsM(filasM, colsM, thickM), fotosCache, filasM);
+
+  const letraI = document.getElementById("letraI");
+  const letraM = document.getElementById("letraM");
+
+  // Fade out
+  letraI.classList.add("fade-out");
+  letraM.classList.add("fade-out");
+
+  setTimeout(()=>{
+    // Re-crear contenido
+    crearLetra(letraI, coordsI(filasI, colsI), fotosCache);
+    crearLetra(letraM, coordsM(filasM, colsM, thickM), fotosCache);
+
+    // Fade in
+    letraI.classList.remove("fade-out");
+    letraM.classList.remove("fade-out");
+    letraI.classList.add("fade-in");
+    letraM.classList.add("fade-in");
+
+    // Quitar la clase fade-in después de la animación
+    setTimeout(()=>{
+      letraI.classList.remove("fade-in");
+      letraM.classList.remove("fade-in");
+    }, 600);
+  }, 600); // coincide con transition-duration en CSS
 }
 
-// Carga inicial y refresco automático
+// ===== Carga inicial =====
 fetch(SCRIPT_URL)
   .then(r=>r.json())
   .then(fotos=>{
