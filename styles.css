@@ -5,28 +5,34 @@ body{
   justify-content:center;
   align-items:center;
   min-height:100vh;
+  flex-direction:column;
+   /* 🔹 NUEVO: marco blanco */
+  border: 20px solid white;   /* grosor del marco */
+  box-sizing: border-box;     /* asegura que el borde no rompa el tamaño */
 }
 
-.container{
+.logo{
+  text-align:center;
+}
+
+.container-im{
   display:flex;
   gap:60px;
-  flex-wrap:wrap;
   justify-content:center;
+  flex-wrap:wrap;
+  margin-bottom:20px;
 }
 
-/* 🔵 Transición global para refrescos */
+/* ===== Mosaico ===== */
 .letra{
+  padding-top: 100px;
   display:grid;
   gap:2px;
   opacity:1;
   transition: opacity 0.6s ease;
 }
-.letra.fade-out{
-  opacity:0;
-}
-.letra.fade-in{
-  opacity:1;
-}
+.letra.fade-out{ opacity:0; }
+.letra.fade-in { opacity:1; }
 
 .letra img{
   width:100%;
@@ -36,8 +42,29 @@ body{
   cursor:pointer;
   transition:transform 0.3s ease;
 }
-.letra img:hover{
-  transform:scale(1.05);
+.letra img:hover{ transform:scale(1.05); }
+
+/* ===== Textos ===== */
+.titulo{
+  font-size:3rem;
+  font-weight:bold;
+  color:#7bd348;   /* verde claro */
+  margin:0;
+  padding-top: 100px;
+}
+.titulo span{ color:#3c8c3c; } /* verde oscuro */
+
+.subtitulo{
+  font-size: 3rem;
+  margin-top:10px;
+  font-weight:bold;
+  background:white;
+  color:#0a1a4a;
+
+  /* ✅ Ajustes correctos */
+  padding: 6px 100vh;       /* padding normal, no exagerado */
+  display: inline-block;    /* para que respete el ancho del texto */
+  white-space: nowrap;      /* evita que el texto se parta en varias líneas */
 }
 
 /* ===== Modal ===== */
