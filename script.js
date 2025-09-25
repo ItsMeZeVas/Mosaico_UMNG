@@ -1,3 +1,4 @@
+
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuSShIX_-wTmrL5AwAnnk5C4xFWWHGYx4pyeFNMP3zq_RYf4RSkm8P_0FyhcmnWVgj/exec";
 
 // ===== CONFIGURACIÓN =====
@@ -6,9 +7,16 @@ const colsI    = 2;
 const filasM   = 12;
 const colsM    = 14;
 const thickM   = 2;
-const cellSize = 40;
 const REFRESCO_MS = 30000;
-// ==========================
+
+// ⚡️Aquí puedes controlar el tamaño base si quieres forzarlo
+// Si dejas calcCellSize, será automático según la ventana
+function calcCellSize() {
+  const maxCellW = window.innerWidth  / 30; // <---- Cambia 40 para +/– celdas a lo ancho
+  const maxCellH = window.innerHeight / 20; // <---- Cambia 20 para +/– celdas a lo alto
+  return Math.min(maxCellW, maxCellH);
+}
+let cellSize = calcCellSize(); // 🔑 tamaño inicial dinámico
 
 function configurarGrid(el, filas, columnas){
   el.style.gridTemplateRows    = `repeat(${filas}, ${cellSize}px)`;
@@ -112,7 +120,6 @@ function refrescar(){
   letraM.classList.add("fade-out");
 
   setTimeout(()=>{
-    // Re-crear contenido
     crearLetra(letraI, coordsI(filasI, colsI), fotosCache);
     crearLetra(letraM, coordsM(filasM, colsM, thickM), fotosCache);
 
@@ -122,19 +129,30 @@ function refrescar(){
     letraI.classList.add("fade-in");
     letraM.classList.add("fade-in");
 
-    // Quitar la clase fade-in después de la animación
     setTimeout(()=>{
       letraI.classList.remove("fade-in");
       letraM.classList.remove("fade-in");
     }, 600);
-  }, 600); // coincide con transition-duration en CSS
+  }, 600);
 }
+
+// ===== Ajuste de tamaño dinámico =====
+function ajustarTamano() {
+  cellSize = calcCellSize();                    // 🔑 recalcular
+  document.documentElement.style
+          .setProperty('--cell-size', cellSize + 'px');
+  configurarGrid(document.getElementById("letraI"), filasI, colsI);
+  configurarGrid(document.getElementById("letraM"), filasM, colsM);
+}
+window.addEventListener('resize', ajustarTamano);
 
 // ===== Carga inicial =====
 fetch(SCRIPT_URL)
   .then(r=>r.json())
   .then(fotos=>{
     fotosCache = fotos;
+    ajustarTamano();   // aplicar tamaño inicial
     refrescar();
     setInterval(refrescar, REFRESCO_MS);
   });
+
