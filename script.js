@@ -1,55 +1,45 @@
-
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuSShIX_-wTmrL5AwAnnk5C4xFWWHGYx4pyeFNMP3zq_RYf4RSkm8P_0FyhcmnWVgj/exec";
 
 // ===== CONFIGURACIÓN =====
-const filasI   = 12;
-const colsI    = 2;
-const filasM   = 12;
-const colsM    = 14;
-const thickM   = 2;
-const REFRESCO_MS = 30000;
+const filas = 12;
+const columnas = 17;
+const REFRESCO_MS = 30000; // cada cuánto se muestran las precargadas
+const PRECARGA_MS = 5000;  // cada cuánto se precargan nuevas
 
-// ⚡️Aquí puedes controlar el tamaño base si quieres forzarlo
-// Si dejas calcCellSize, será automático según la ventana
+const BORDES_ACTIVOS = true;
+const BORDER_SIZE = 5;
+const BORDER_COLOR = "white";
+
+const matrizIM = [
+  1,1,1,0,0,1,1,1,0,0,0,0,0,0,1,1,1,
+  1,1,1,0,0,1,1,1,1,1,0,0,1,1,1,1,1,
+  1,1,1,0,0,1,1,1,1,1,0,0,1,1,1,1,1,
+  1,1,1,0,0,1,1,1,1,1,0,0,1,1,1,1,1,
+  1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,0,0,1,1,1,0,0,1,1,0,0,1,1,1,
+  1,1,1,0,0,1,1,1,0,0,0,0,0,0,1,1,1,
+  1,1,1,0,0,1,1,1,0,0,0,0,0,0,1,1,1,
+  1,1,1,0,0,1,1,1,0,0,0,0,0,0,1,1,1,
+  1,1,1,0,0,1,1,1,0,0,0,0,0,0,1,1,1,
+];
+
+// ===== Tamaño dinámico =====
 function calcCellSize() {
-  const maxCellW = window.innerWidth  / 30; // <---- Cambia 40 para +/– celdas a lo ancho
-  const maxCellH = window.innerHeight / 20; // <---- Cambia 20 para +/– celdas a lo alto
+  const maxCellW = window.innerWidth / 30;
+  const maxCellH = window.innerHeight / 20;
   return Math.min(maxCellW, maxCellH);
 }
-let cellSize = calcCellSize(); // 🔑 tamaño inicial dinámico
+let cellSize = calcCellSize();
 
 function configurarGrid(el, filas, columnas){
+  el.style.display = "grid";
   el.style.gridTemplateRows    = `repeat(${filas}, ${cellSize}px)`;
   el.style.gridTemplateColumns = `repeat(${columnas}, ${cellSize}px)`;
 }
 
-function coordsI(filas, columnas){
-  const puntos=[];
-  for(let r=0;r<filas;r++){
-    for(let c=0;c<columnas;c++) puntos.push([r,c]);
-  }
-  return {puntos, filas, columnas};
-}
-
-function coordsM(filas, columnas, thick){
-  const puntos=[];
-  const mitad = Math.floor(columnas/2);
-  for(let r=0;r<filas;r++){
-    for(let t=0;t<thick;t++){ puntos.push([r,t]); puntos.push([r,columnas-1-t]); }
-    let diag = Math.floor(r*(mitad/(filas)));
-    for(let t=0;t<thick;t++){
-      let cc = diag + t;
-      if(cc<columnas) puntos.push([r, cc]);
-    }
-    let diagR = columnas-1 - diag;
-    for(let t=0;t<thick;t++){
-      let cc = diagR - t;
-      if(cc>=0) puntos.push([r, cc]);
-    }
-  }
-  return {puntos, filas, columnas};
-}
-
+// ===== Utilidad =====
 function shuffle(arr){
   const a = [...arr];
   for(let i=a.length-1;i>0;i--){
@@ -82,67 +72,138 @@ function cerrarModal(){
 }
 
 cerrarBtn.onclick = cerrarModal;
-modal.addEventListener("click", e=>{
-  if(e.target === modal) cerrarModal();
-});
+modal.addEventListener("click", e=>{ if(e.target === modal) cerrarModal(); });
 
 // ===== Construcción del mosaico =====
-function crearLetra(container, data, fotos){
+function crearMatriz(container, matriz, filas, columnas, fotos){
   container.innerHTML = "";
-  configurarGrid(container, data.filas, data.columnas);
+  configurarGrid(container, filas, columnas);
 
   let imgs = shuffle(fotos);
-  while(imgs.length < data.puntos.length){
+  let total = matriz.filter(v=>v===1).length;
+  while(imgs.length < total){
     imgs = imgs.concat(shuffle(fotos));
   }
 
-  data.puntos.forEach(([r,c], i)=>{
-    const img = document.createElement("img");
-    img.src = imgs[i % imgs.length].thumb;
-    img.dataset.big = imgs[i % imgs.length].big;
-    img.style.gridRow = r+1;
-    img.style.gridColumn = c+1;
-    img.addEventListener("click", e=> abrirModal(e.target.dataset.big));
-    container.appendChild(img);
-  });
+  let indexFoto = 0;
+  for(let i=0; i<matriz.length; i++){
+    const row = Math.floor(i / columnas);
+    const col = i % columnas;
+
+    const cell = document.createElement("div");
+    if(matriz[i] === 1){
+      let img = document.createElement("img");
+      img.src = imgs[indexFoto % imgs.length].thumb;
+      img.dataset.big = imgs[indexFoto % imgs.length].big;
+      img.addEventListener("click", e=> abrirModal(e.target.dataset.big));
+
+      if(BORDES_ACTIVOS){
+        let borde = "";
+        if(row === 0 || matriz[(row-1)*columnas + col] === 0) borde += `border-top:${BORDER_SIZE}px solid ${BORDER_COLOR};`;
+        if(row === filas-1 || matriz[(row+1)*columnas + col] === 0) borde += `border-bottom:${BORDER_SIZE}px solid ${BORDER_COLOR};`;
+        if(col === 0 || matriz[row*columnas + (col-1)] === 0) borde += `border-left:${BORDER_SIZE}px solid ${BORDER_COLOR};`;
+        if(col === columnas-1 || matriz[row*columnas + (col+1)] === 0) borde += `border-right:${BORDER_SIZE}px solid ${BORDER_COLOR};`;
+        img.style = borde;
+      }
+
+      cell.appendChild(img);
+      indexFoto++;
+    }
+    container.appendChild(cell);
+  }
 }
 
-let fotosCache = [];
+// ===== Cachés =====
+let fotosActuales = [];
+let fotosPrecargadas = [];
+let animacionTipo = 0; // alterna animaciones
 
+// ===== Refresco con animaciones alternas =====
 function refrescar(){
-  if(!fotosCache.length) return;
+  if(!fotosActuales.length) return;
 
-  const letraI = document.getElementById("letraI");
-  const letraM = document.getElementById("letraM");
+  const letraIM = document.getElementById("letraIM");
+  const imgs = Array.from(letraIM.querySelectorAll("img"));
 
-  // Fade out
-  letraI.classList.add("fade-out");
-  letraM.classList.add("fade-out");
+  imgs.forEach(img => img.classList.add("fade-out"));
 
-  setTimeout(()=>{
-    crearLetra(letraI, coordsI(filasI, colsI), fotosCache);
-    crearLetra(letraM, coordsM(filasM, colsM, thickM), fotosCache);
+  setTimeout(() => {
+    // Actualizar imágenes sin recrear grid
+    imgs.forEach((img, i) => {
+      const foto = fotosActuales[i % fotosActuales.length];
+      img.src = foto.thumb;
+      img.dataset.big = foto.big;
+    });
 
-    // Fade in
-    letraI.classList.remove("fade-out");
-    letraM.classList.remove("fade-out");
-    letraI.classList.add("fade-in");
-    letraM.classList.add("fade-in");
+    // Animaciones alternas
+    if(animacionTipo === 0){
+      // Abajo hacia arriba
+      for(let row = filas-1; row>=0; row--){
+        for(let col=0; col<columnas; col++){
+          const index = row*columnas + col;
+          const img = imgs[index];
+          if(!img) continue;
+          const delay = (filas-1-row)*100 + col*10;
+          setTimeout(()=>{
+            img.classList.remove("fade-out");
+            img.classList.add("fade-in");
+            setTimeout(()=>img.classList.remove("fade-in"), 600);
+          }, delay);
+        }
+      }
+    } else if(animacionTipo === 1){
+      // Izquierda a derecha
+      imgs.forEach((img,i)=>{
+        setTimeout(()=>{
+          img.classList.remove("fade-out");
+          img.classList.add("fade-in");
+          setTimeout(()=>img.classList.remove("fade-in"),600);
+        }, i*50);
+      });
+    } else {
+      // Aleatoria por fila
+      for(let row=0; row<filas; row++){
+        const rowImgs = imgs.slice(row*columnas, (row+1)*columnas);
+        const shuffledRow = shuffle(rowImgs);
+        shuffledRow.forEach((img,i)=>{
+          setTimeout(()=>{
+            img.classList.remove("fade-out");
+            img.classList.add("fade-in");
+            setTimeout(()=>img.classList.remove("fade-in"),600);
+          }, i*50 + row*50);
+        });
+      }
+    }
 
-    setTimeout(()=>{
-      letraI.classList.remove("fade-in");
-      letraM.classList.remove("fade-in");
-    }, 600);
+    animacionTipo = (animacionTipo + 1) % 3;
   }, 600);
 }
 
-// ===== Ajuste de tamaño dinámico =====
-function ajustarTamano() {
-  cellSize = calcCellSize();                    // 🔑 recalcular
-  document.documentElement.style
-          .setProperty('--cell-size', cellSize + 'px');
-  configurarGrid(document.getElementById("letraI"), filasI, colsI);
-  configurarGrid(document.getElementById("letraM"), filasM, colsM);
+// ===== Precarga =====
+function precargar(){
+  fetch(SCRIPT_URL)
+    .then(r=>r.json())
+    .then(fotos=>{
+      fotosPrecargadas = fotos;
+      console.log("✅ Precargadas nuevas imágenes");
+    });
+}
+
+// ===== Cambio automático =====
+function cambiar(){
+  if(fotosPrecargadas.length){
+    fotosActuales = fotosPrecargadas;
+    fotosPrecargadas = [];
+    refrescar();
+    precargar();
+  }
+}
+
+// ===== Ajuste de tamaño =====
+function ajustarTamano(){
+  cellSize = calcCellSize();
+  document.documentElement.style.setProperty('--cell-size', cellSize+'px');
+  configurarGrid(document.getElementById("letraIM"), filas, columnas);
 }
 window.addEventListener('resize', ajustarTamano);
 
@@ -150,9 +211,12 @@ window.addEventListener('resize', ajustarTamano);
 fetch(SCRIPT_URL)
   .then(r=>r.json())
   .then(fotos=>{
-    fotosCache = fotos;
-    ajustarTamano();   // aplicar tamaño inicial
+    fotosActuales = fotos;
+    ajustarTamano();
+    const letraIM = document.getElementById("letraIM");
+    crearMatriz(letraIM, matrizIM, filas, columnas, fotosActuales);
     refrescar();
-    setInterval(refrescar, REFRESCO_MS);
-  });
 
+    setTimeout(precargar, PRECARGA_MS);
+    setInterval(cambiar, REFRESCO_MS);
+  });
