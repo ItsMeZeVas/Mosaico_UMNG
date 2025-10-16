@@ -1,5 +1,5 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmOjRGRBf1MX55GAOFI_ELCvjp0C7UfRe1_uGaZf8LLECZv664vVblBr4320rSWqp5/exec";
-
+console.log("📸 Mosaico interactivo - por @comsolblog",SCRIPT_URL);
 // ===== CONFIGURACIÓN =====
 const filas = 12;
 const columnas = 17;
@@ -15,12 +15,12 @@ const NUM_IMAGENES = 560; // 🧩 cantidad que se pedirá a tu App Script
 
 const matrizIM = [
   1,1,1,0,0,1,1,1,0,0,0,0,0,0,1,1,1,
-  1,1,1,0,0,1,1,1,1,1,0,0,1,1,1,1,1,
+  1,1,1,0,0,1,1,1,1,0,0,0,0,1,1,1,1,
   1,1,1,0,0,1,1,1,1,1,0,0,1,1,1,1,1,
   1,1,1,0,0,1,1,1,1,1,0,0,1,1,1,1,1,
   1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,
   1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,
-  1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,0,0,1,1,1,0,1,1,1,1,0,1,1,1,
   1,1,1,0,0,1,1,1,0,0,1,1,0,0,1,1,1,
   1,1,1,0,0,1,1,1,0,0,0,0,0,0,1,1,1,
   1,1,1,0,0,1,1,1,0,0,0,0,0,0,1,1,1,
@@ -84,6 +84,7 @@ const modalImg  = document.getElementById("modal-img");
 const cerrarBtn = document.querySelector(".cerrar");
 
 function abrirModal(src){
+   console.log("🖼️ Abriendo imagen:", src);
   modalImg.classList.remove("visible");
   const temp = new Image();
   temp.onload = () => {
@@ -92,6 +93,7 @@ function abrirModal(src){
     requestAnimationFrame(()=> modalImg.classList.add("visible"));
   };
   temp.src = src;
+ 
 }
 
 function cerrarModal(){
