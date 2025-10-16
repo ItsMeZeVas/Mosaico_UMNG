@@ -33,7 +33,7 @@ body{
 .letra{
   padding-top: 10vh;
   display:grid;
-  gap:0.2vw;
+  gap:0.15vw;
   opacity:1;
   transition: opacity 0.6s ease;
 }
