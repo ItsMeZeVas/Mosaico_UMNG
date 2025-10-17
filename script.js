@@ -1,9 +1,9 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmOjRGRBf1MX55GAOFI_ELCvjp0C7UfRe1_uGaZf8LLECZv664vVblBr4320rSWqp5/exec";
-console.log("📸 Mosaico interactivo - por @comsolblog",SCRIPT_URL);
+console.log("📸 Mosaico interactivo",SCRIPT_URL);
 // ===== CONFIGURACIÓN =====
 const filas = 12;
 const columnas = 17;
-const REFRESCO_MS = 30000;
+const REFRESCO_MS = 100000;
 const PRECARGA_MS = 5000;
 const FACTOR = 2; // 👈 Ajusta esto (2 o 3) para aumentar la densidad
 
@@ -12,6 +12,10 @@ const BORDER_SIZE = 5;
 const BORDER_COLOR = "white";
 
 const NUM_IMAGENES = 560; // 🧩 cantidad que se pedirá a tu App Script
+
+
+const TIEMPO_INACTIVIDAD = 10000; // 10 segundos
+const INTERVALO_DEMO = 8000;      // abrir imagen cada 5 segundos
 
 const matrizIM = [
   1,1,1,0,0,1,1,1,0,0,0,0,0,0,1,1,1,
@@ -294,3 +298,51 @@ fetch(`${SCRIPT_URL}?cant=${NUM_IMAGENES}`)
     setTimeout(precargar, PRECARGA_MS);
     setInterval(cambiar, REFRESCO_MS);
   });
+
+
+// ========================================================
+// 💤 MODO DEMO AUTOMÁTICO (INACTIVIDAD)
+// - No altera el flujo de refresco/precarga/animaciones.
+// - Solo abre el modal sobre imágenes ya visibles.
+// ========================================================
+let demoTimer;
+let demoActivo = false;
+let demoIntervalo;
+
+
+function activarDemo(){
+  if(demoActivo) return;
+  demoActivo = true;
+  console.log("🤖 Modo demo activado");
+
+  demoIntervalo = setInterval(()=>{
+    const imgs = Array.from(document.querySelectorAll("#letraIM img"));
+    if(imgs.length === 0) return;
+    const randomImg = imgs[Math.floor(Math.random()*imgs.length)];
+    // solo abrir modal (no interferir con refrescar)
+    abrirModal(randomImg.dataset.big);
+  }, INTERVALO_DEMO);
+}
+
+function desactivarDemo(){
+  if(!demoActivo) return;
+  demoActivo = false;
+  console.log("🧠 Modo demo desactivado");
+  clearInterval(demoIntervalo);
+  cerrarModal();
+}
+
+function reiniciarTemporizadorDemo(){
+  clearTimeout(demoTimer);
+  demoTimer = setTimeout(activarDemo, TIEMPO_INACTIVIDAD);
+  // si ya estaba en demo, desactívalo al detectar interacción
+  if(demoActivo) desactivarDemo();
+}
+
+// Detectar cualquier interacción del usuario para reiniciar conteo y salir de demo si estaba activo
+["mousemove","mousedown","keydown","touchstart"].forEach(ev=>{
+  document.addEventListener(ev, reiniciarTemporizadorDemo, {passive: true});
+});
+
+// Iniciar conteo desde el principio
+reiniciarTemporizadorDemo();
