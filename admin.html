@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Panel Admin - Mosaico</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  h2 { text-align: center; }
+  #imagenes { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+
+  .imagen-card {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    width: 220px;
+    transition: all 0.5s ease; /* transición suave */
+  }
+
+  .imagen-card img { width: 200px; height: 200px; object-fit: cover; }
+
+  button { margin: 5px; padding: 5px 10px; cursor: pointer; }
+  button.aprobar { background-color: #4CAF50; color: white; border: none; }
+  button.rechazar { background-color: #f44336; color: white; border: none; }
+
+  /* Animación de salida */
+  .imagen-card.salida {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.9);
+  }
+</style>
+</head>
+<body>
+
+<h2>Panel Admin - Revisión de Imágenes</h2>
+<div id="imagenes"></div>
+
+<script>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyk0cb1TCZWaxnoogXCj749ZDVU567PQ4jqZglmmZ5PeTY5NMs5wI5_3O2UiQZzwtb1ow/exec"; 
+let imagenesPrevias = [];
+
+// Función para cargar imágenes
+async function cargarImagenes() {
+  try {
+    const res = await fetch(`${WEB_APP_URL}?accion=obtenerImagenes`);
+    const imagenes = await res.json();
+
+    // Verificar si hay cambios
+    const urlsNuevas = imagenes.map(i => i.url);
+    if (JSON.stringify(urlsNuevas) === JSON.stringify(imagenesPrevias)) return;
+    imagenesPrevias = urlsNuevas;
+
+    const cont = document.getElementById("imagenes");
+    cont.innerHTML = "";
+
+    if (imagenes.length === 0) {
+      cont.innerHTML = "<p>No hay imágenes pendientes.</p>";
+      return;
+    }
+
+    imagenes.forEach(img => {
+      const div = document.createElement("div");
+      div.className = "imagen-card";
+      div.innerHTML = `
+        <img src="${img.url}" alt="${img.nombre}">
+        <p><strong>${img.nombre}</strong></p>
+        <button class="aprobar" onclick="aprobar('${img.url}')">✔️ Aprobar</button>
+        <button class="rechazar" onclick="rechazar('${img.url}')">❌ Rechazar</button>
+      `;
+      cont.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error("Error al cargar imágenes:", err);
+  }
+}
+
+// Función aprobar con animación
+async function aprobar(url) {
+  const card = document.querySelector(`img[src="${url}"]`)?.parentElement;
+  if (!card) return;
+
+  card.classList.add("salida");
+  setTimeout(async () => {
+    await fetch(`${WEB_APP_URL}?accion=aprobar&url=${encodeURIComponent(url)}`);
+    card.remove();
+  }, 500);
+}
+
+// Función rechazar con animación
+async function rechazar(url) {
+  const card = document.querySelector(`img[src="${url}"]`)?.parentElement;
+  if (!card) return;
+
+  card.classList.add("salida");
+  setTimeout(async () => {
+    await fetch(`${WEB_APP_URL}?accion=rechazar&url=${encodeURIComponent(url)}`);
+    card.remove();
+  }, 500);
+}
+
+// Carga inicial
+cargarImagenes();
+
+// Recarga automática cada 5 segundos
+setInterval(cargarImagenes, 5000);
+</script>
+
+</body>
+</html>
