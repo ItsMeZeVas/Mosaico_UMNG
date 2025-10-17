@@ -4,54 +4,121 @@ html, body {
   height: 100vh;
   margin: 0;
   padding: 0;
-  overflow: hidden;        /* sin scroll */
+  overflow: hidden;
   box-sizing: border-box;
 }
 
-body{
-  background:#101635;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  border: 10px solid white
+body {
+  background: #101635;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  border: 1vw solid white;
+  position: relative;
 }
 
-.logo{
-  text-align:center;
-  grid-row: 2;
+/* === FRANJAS DINÁMICAS CON ANIMACIÓN === */
+.franja {
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: 0;
+  z-index: 0;
+  animation: slideIn 1s ease forwards;
 }
 
-.container-im{
-  display:flex;
-  gap:3vw;                  /* gap proporcional al ancho */
-  justify-content:center;
-  flex-wrap:nowrap;
-  margin-bottom:2vh;
+@keyframes slideIn {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
-.letra{
+/* Izquierda */
+.franja-izquierda {
+  left: 0;
+  border-bottom: 100vh solid transparent;
+  border-left: 10vw solid #b22222;
+}
+
+.franja-izquierda2 {
+  left: 0;
+  border-top: 100vh solid transparent;
+  border-left: 10vw solid #e3a820;
+  animation-delay: 0.2s;
+}
+
+/* Derecha */
+.franja-derecha {
+  right: 0;
+  border-top: 100vh solid transparent;
+  border-right: 10vw solid #b22222;
+  animation: slideRight 1s ease forwards;
+}
+
+.franja-derecha2 {
+  right: 0;
+  border-bottom: 100vh solid transparent;
+  border-right: 10vw solid #e3a820;
+  animation: slideRight 1s ease forwards;
+  animation-delay: 0.2s;
+}
+
+@keyframes slideRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ===== LOGO Y CONTAINER ===== */
+.logo {
+  text-align: center;
+  position: relative;
+  z-index: 5;
+}
+
+.logo-centro {
+  position: absolute;   /* relativo al body o contenedor con position: relative */
+
+  top: 60%;             /* mitad de la pantalla vertical */
+  left: 110%;            /* 80% desde la izquierda */
+  transform: translateY(-50%); /* centrado exacto vertical */
+  
+  width: clamp(80px, 12vw, 150px);
+  height: auto;
+  z-index: 5;           /* encima de las franjas */
+}
+
+.container-im {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(1vw, 4vw, 6vw);
+  margin-bottom: 2vh;
+  position: relative;
+}
+
+/* ===== LETRA ===== */
+.letra {
   padding-top: 10vh;
-  display:grid;
-  gap:0.15vw;
-  opacity:1;
+  display: grid;
+  gap: 0.2vw;
+  opacity: 1;
   transition: opacity 0.6s ease;
 }
-.letra.fade-out{ opacity:0; }
-.letra.fade-in { opacity:1; }
 
-.letra img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  border-radius:3px;
-  cursor:pointer;
-  transition:transform 0.3s ease;
-  border-color: white;
-  border-style: solid;
+.letra.fade-out { opacity: 0; }
+.letra.fade-in { opacity: 1; }
 
+.letra img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  border: 2px solid white;
 }
-.letra img:hover{ transform:scale(1.05); }
+
+.letra img:hover { transform: scale(1.05); }
 
 .letra img.fade-out {
   opacity: 0;
@@ -65,135 +132,135 @@ body{
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
-
-
-/* ===== Textos ===== */
-.titulo{
-  font-size: clamp(1.5rem, 4vw, 3rem); /* escala entre móvil y escritorio */
-  font-weight:bold;
-  color:#7bd348;
-  margin:0;
+/* ===== TEXTOS ===== */
+.titulo {
+  position: relative;
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  font-weight: bold;
+  color: #7bd348;
+  margin: 0;
   padding-top: 3vh;
+  text-align: center;
+  left: 50%;            /* centrado horizontal */
+  transform: translateX(-50%);
 }
-.titulo span{ color:#3c8c3c; }
 
-.subtitulo{
-  font-size: clamp(1.2rem, 3.5vw, 3rem);
-  margin-top:1vh;
-  font-weight:bold;
-  background:white;
-  color:#0a1a4a;
+.titulo span { color: #3c8c3c; }
 
-  padding: 0.5vh 100vh;
+.subtitulo {
+  font-size: clamp(1rem, 3.5vw, 2.5rem);
+  margin-top: 1vh;
+  font-weight: bold;
+  background: white;
+  color: #0a1a4a;
+  padding: 0.5vh 2vw;
   display: inline-block;
   white-space: nowrap;
+  position: relative;
+  z-index: 10;
+  border-radius: 0.5vw;
+  text-align: center;
+  left: 50%;            /* centrado horizontal */
+  transform: translateX(-50%);
 }
 
-/* ===== Modal ===== */
-.modal{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  position:fixed;
-  z-index:1000;
-  left:0;
-  top:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.4);
+/* ===== MODAL ===== */
+.modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
   backdrop-filter: blur(0px);
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.4s ease, backdrop-filter 0.4s ease;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, backdrop-filter 0.4s ease;
 }
 
-.modal.mostrar{
-  opacity:1;
+.modal.mostrar {
+  opacity: 1;
   backdrop-filter: blur(10px);
-  pointer-events:auto;
+  pointer-events: auto;
 }
 
-.modal-contenido{
-  max-width:90%;
-  max-height:90%;
-  border-radius:1vw;
-  box-shadow:0 0 20px rgba(255,255,255,0.2);
-  transform:scale(0.8);
-  opacity:0;
-  transition:transform 0.4s ease, opacity 0.4s ease;
+.modal-contenido {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 1vw;
+  box-shadow: 0 0 20px rgba(255,255,255,0.2);
+  transform: scale(0.8);
+  opacity: 0;
+  transition: transform 0.4s ease, opacity 0.4s ease;
 }
 
-.modal.mostrar .modal-contenido.visible{
-  transform:scale(1);
-  opacity:1;
+.modal.mostrar .modal-contenido.visible {
+  transform: scale(1);
+  opacity: 1;
 }
 
-.cerrar{
-  position:absolute;
-  top:2vh;
-  right:3vw;
-  color:#fff;
+.cerrar {
+  position: absolute;
+  top: 2vh;
+  right: 3vw;
+  color: #fff;
   font-size: clamp(2rem, 5vw, 3rem);
-  font-weight:bold;
-  cursor:pointer;
-  transition:color 0.2s;
-}
-.cerrar:hover{ color:#ccc; }
-
-/* ===== MEDIA QUERIES PARA CASOS EXTREMOS ===== */
-@media (max-width: 768px){
-  .container-im{
-    size: 50%;
-    gap:3vw;
-  }
-  .letra{
-    padding-top: 3vh;
-    gap:1px;
-  }
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s;
 }
 
-@media (max-width: 480px){
-  body{
-    border: 2vw solid white;   /* marco más grueso en pantallas pequeñas */
-  }
-  .container-im{
-    gap:2vw;
-  }
-  .letra{
-    padding-top: 2vh;
-    gap:1.5vw;
-  }
-}
+.cerrar:hover { color: #ccc; }
 
-/* === Ajustes para tablets (pantallas medianas) === */
+/* ===== MEDIA QUERIES RESPONSIVE ===== */
 @media (max-width: 1024px) {
-  :root {
-    --cell-size: 30px;   /* 🔹 tamaño de las celdas */
-  }
-  .titulo      { font-size: 2.5rem; }
-  .subtitulo   { font-size: 2rem; padding: 6px 100vh; }
+  :root { --cell-size: 30px; }
+  .titulo { font-size: 2.2rem; }
+  .subtitulo { font-size: 1.8rem; padding: 6px 4vw; }
+  .logo-centro { width: 10vw; }
 }
 
-/* === Ajustes para móviles === */
+@media (max-width: 768px) {
+  .container-im { gap: 3vw; }
+  .letra { padding-top: 5vh; gap: 1px; }
+}
+
+/* ===== ORIENTACIÓN VERTICAL ===== */
+@media (orientation: portrait) {
+  .container-im {
+    flex-direction: column;
+    align-items: center;
+    gap: 2vh;
+  }
+
+  .logo-centro {
+    position: relative;  /* deja el logo arriba, sin centrar vertical */
+    top: 0;
+    left: 0;
+    transform: none;
+    margin-bottom: 2vh;
+  }
+
+  .titulo, .subtitulo {
+    text-align: center;
+  }
+}
+
 @media (max-width: 600px) {
-  :root {
-    --cell-size: 10vh;   /* 🔹 más pequeño en móviles */
-  }
-  body {
-    border-width: 10px;  /* marco más delgado */
-  }
-  .titulo      { font-size: 1.5rem; }
-  .subtitulo   { font-size: 1rem; padding: 6px 100vh; }
-
-  .container-im{
-  display:flex;
-  gap:5vw;                  /* gap proporcional al ancho */
-  justify-content:center;
-  flex-wrap:nowrap;
-  margin-bottom:2vh;
+  :root { --cell-size: 10vh; }
+  body { border-width: 8px; }
+  .titulo { font-size: 1.5rem; }
+  .subtitulo { font-size: 1rem; padding: 4px 3vw; }
+  .container-im { gap: 4vw; }
+  #letraI, #letraM { gap: 1px; }
 }
- #letraI,
-  #letraM {
-    gap: 1px;   /* Menor separación en pantallas pequeñas */
-  }
+
+@media (max-width: 480px) {
+  body { border-width: 6px; }
+  .container-im { gap: 2vw; }
+  .letra { padding-top: 2vh; gap: 1.5vw; }
 }
