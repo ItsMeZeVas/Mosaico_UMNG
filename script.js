@@ -313,16 +313,36 @@ let demoIntervalo;
 function activarDemo(){
   if(demoActivo) return;
   demoActivo = true;
-  console.log("🤖 Modo demo activado");
+  console.log("🤖 Modo demo activado (máx 10 imágenes)");
+
+  let contador = 0;
 
   demoIntervalo = setInterval(()=>{
     const imgs = Array.from(document.querySelectorAll("#letraIM img"));
     if(imgs.length === 0) return;
+
     const randomImg = imgs[Math.floor(Math.random()*imgs.length)];
-    // solo abrir modal (no interferir con refrescar)
     abrirModal(randomImg.dataset.big);
+
+    contador++;
+
+    if(contador >= 10){  // 👈 Después de la última imagen...
+      console.log("🧩 Demo completado, cerrando última imagen...");
+
+      clearInterval(demoIntervalo);
+
+      // Espera 2 segundos antes de cerrar el modal
+      setTimeout(()=>{
+        cerrarModal();
+        demoActivo = false;
+        reiniciarTemporizadorDemo(); // vuelve al modo normal
+        console.log("🧠 Modo demo finalizado, regreso al estado normal");
+      }, 8000);
+    }
+
   }, INTERVALO_DEMO);
 }
+
 
 function desactivarDemo(){
   if(!demoActivo) return;
