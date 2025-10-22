@@ -3,7 +3,7 @@ console.log("📸 Mosaico interactivo",SCRIPT_URL);
 // ===== CONFIGURACIÓN =====
 const filas = 12;
 const columnas = 17;
-const REFRESCO_MS = 100000;
+const REFRESCO_MS = 60000;
 const PRECARGA_MS = 5000;
 const FACTOR = 2; // 👈 Ajusta esto (2 o 3) para aumentar la densidad
 
